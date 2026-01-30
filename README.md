@@ -14,6 +14,10 @@ A lightweight Excel-like spreadsheet application built in Rust using **egui + ef
 - JSON persistence (save/load)
 - Modular architecture (engine + UI)
 
+## UI
+
+![alt text](image.png)
+
 
 ## Requirements
 
