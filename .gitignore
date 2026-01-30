@@ -1,0 +1,45 @@
+# Rust / Cargo
+/target/
+Cargo.lock
+
+# Rustfmt / Clippy
+rustfmt.toml
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Build Artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.app
+*.out
+
+# Logs
+*.log
+
+# Temporary Files
+*.tmp
+*.bak
+*.old
+
+# egui / GUI cache
+.egui_memory
+.egui_settings
+
+# macOS / Linux / Windows
+*.stackdump
+*.pid
+
+# Local config files
+.env
+.env.local
