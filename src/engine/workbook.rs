@@ -9,7 +9,7 @@ pub struct Workbook {
 impl Workbook {
     pub fn new() -> Self {
         Self {
-            sheets: vec![Sheet::new()],
+            sheets: vec![Sheet::new("Sheet1")],
             active: 0,
             engine: RecalcEngine::new(),
         }
@@ -23,5 +23,21 @@ impl Workbook {
         let sheet = &mut self.sheets[self.active];
         self.engine.rebuild_graph(sheet);
         self.engine.recalc(sheet);
+    }
+
+    pub fn sheets(&self) -> &Vec<Sheet> {
+        &self.sheets
+    }
+
+    pub fn sheets_mut(&mut self) -> &mut Vec<Sheet> {
+        &mut self.sheets
+    }
+
+    pub fn active_sheet_index(&self) -> usize {
+        self.active
+    }
+
+    pub fn set_active_sheet_index(&mut self, idx: usize) {
+        self.active = idx;
     }
 }

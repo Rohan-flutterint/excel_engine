@@ -1,6 +1,7 @@
 use crate::engine::value::Value;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
+
 pub struct Cell {
     pub raw: String,
     pub value: Value,

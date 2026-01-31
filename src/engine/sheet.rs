@@ -2,13 +2,15 @@ use crate::engine::cell::Cell;
 use std::collections::HashMap;
 
 pub struct Sheet {
+    pub name: String,
     cells: HashMap<String, Cell>,
 }
 
 impl Sheet {
-    pub fn new() -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
-            cells: HashMap::new(),
+            name: name.to_string(),
+            cells: std::collections::HashMap::new(),
         }
     }
 
@@ -31,5 +33,12 @@ impl Sheet {
 
     pub fn iter_cells_mut(&mut self) -> impl Iterator<Item = (&String, &mut Cell)> {
         self.cells.iter_mut()
+    }
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn cells(&self) -> &std::collections::HashMap<String, crate::engine::cell::Cell> {
+        &self.cells
     }
 }

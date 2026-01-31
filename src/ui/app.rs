@@ -23,8 +23,30 @@ impl Default for ExcelApp {
 
 impl eframe::App for ExcelApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        Tabs::draw(self, ctx);
-        FormulaBar::draw(self, ctx);
+        // TOP TOOLBAR
+        egui::TopBottomPanel::top("toolbar").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("Save").clicked() {
+                    let path = std::path::Path::new("workbook.json");
+                    if let Err(e) = crate::engine::storage::save_workbook(path, &self.workbook) {
+                        eprintln!("Save failed: {}", e);
+                    }
+                }
+
+                if ui.button("Load").clicked() {
+                    let path = std::path::Path::new("workbook.json");
+                    match crate::engine::storage::load_workbook(path) {
+                        Ok(wb) => {
+                            self.workbook = wb;
+                            self.workbook.recalculate();
+                        }
+                        Err(e) => eprintln!("Load failed: {}", e),
+                    }
+                }
+            });
+        });
+
+        // MAIN GRID
         Grid::draw(self, ctx);
     }
 }

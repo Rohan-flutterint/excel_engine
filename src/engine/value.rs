@@ -1,6 +1,6 @@
 use crate::engine::error::ExcelError;
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     Number(f64),
     Text(String),

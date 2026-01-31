@@ -16,7 +16,7 @@ impl Grid {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::both().show(ui, |ui| {
-                // ===== COLUMN HEADERS =====
+                // COLUMN HEADERS
                 ui.horizontal(|ui| {
                     ui.add_space(ROW_HEADER_WIDTH);
                     for c in 0..COLS {
@@ -47,6 +47,7 @@ impl Grid {
                             let selected = app.selected == (r, c);
                             let editing = app.editing_cell == Some((r, c));
 
+                            // DISPLAY VALUE
                             let display_value = if editing {
                                 app.edit_buffer.clone()
                             } else {
@@ -55,7 +56,7 @@ impl Grid {
                                     Some(cell) => match &cell.value {
                                         crate::engine::value::Value::Number(n) => n.to_string(),
                                         crate::engine::value::Value::Text(s) => s.clone(),
-                                        crate::engine::value::Value::Bool(b) => b.to_string(), // ✅ added
+                                        crate::engine::value::Value::Bool(b) => b.to_string(),
                                         crate::engine::value::Value::Error(e) => e.to_string(),
                                         crate::engine::value::Value::Empty => cell.raw.clone(),
                                     },
@@ -88,12 +89,10 @@ impl Grid {
                                             egui::TextEdit::singleline(&mut text)
                                                 .id(edit_id)
                                                 .text_color(egui::Color32::BLACK)
-                                                .frame(false), // ✅ removes black box
+                                                .frame(false),
                                         );
 
-                                        // Force focus so cursor appears
                                         ui.memory_mut(|m| m.request_focus(edit_id));
-
                                         resp
                                     } else {
                                         ui.add_sized(
@@ -113,10 +112,9 @@ impl Grid {
                                 app.edit_buffer = text.clone();
                             }
 
-                            // CLICK = COMMIT OLD CELL + SELECT NEW =====
-                            // Single click = select or edit (Excel behavior)
+                            // SINGLE CLICK (Excel behavior)
                             if response.clicked() {
-                                // If clicking a different cell → commit old edit
+                                // Commit previous edit if switching cells
                                 if let Some((er, ec)) = app.editing_cell {
                                     if (er, ec) != (r, c) {
                                         let old_addr =
@@ -126,7 +124,7 @@ impl Grid {
                                     }
                                 }
 
-                                // If clicking same cell again → edit mode
+                                // Click same cell again → edit
                                 if app.selected == (r, c) {
                                     app.editing_cell = Some((r, c));
                                     let sheet = app.workbook.active_sheet_mut();
@@ -134,21 +132,7 @@ impl Grid {
                                         sheet.get(&addr).map(|c| c.raw.clone()).unwrap_or_default();
                                 }
 
-                                // Always update selection
                                 app.selected = (r, c);
-                            }
-
-                            // Single click behavior like Excel:
-                            // 1st click = select
-                            // 2nd click on same cell = edit
-                            if response.clicked() {
-                                if app.selected == (r, c) {
-                                    // already selected → enter edit mode
-                                    app.editing_cell = Some((r, c));
-                                    let sheet = app.workbook.active_sheet_mut();
-                                    app.edit_buffer =
-                                        sheet.get(&addr).map(|c| c.raw.clone()).unwrap_or_default();
-                                }
                             }
 
                             // ENTER = COMMIT
@@ -172,6 +156,28 @@ impl Grid {
 
     fn handle_keyboard(app: &mut ExcelApp, ctx: &egui::Context) {
         let input = ctx.input(|i| i.clone());
+
+        // TYPE-TO-EDIT (Excel behavior)
+        if app.editing_cell.is_none() {
+            for event in &input.events {
+                if let egui::Event::Text(text) = event {
+                    if !text.trim().is_empty() {
+                        let (r, c) = app.selected;
+                        let addr = format!("{}{}", (b'A' + c as u8) as char, r + 1);
+
+                        app.editing_cell = Some((r, c));
+                        app.edit_buffer = text.clone();
+
+                        let sheet = app.workbook.active_sheet_mut();
+                        sheet.set(&addr, "");
+                        app.workbook.recalculate();
+                        return;
+                    }
+                }
+            }
+        }
+
+        // ARROW NAVIGATION
         let old_selected = app.selected;
         let (mut r, mut c) = app.selected;
 
@@ -202,6 +208,7 @@ impl Grid {
 
         app.selected = new_selected;
 
+        // F2 = edit
         if input.key_pressed(Key::F2) {
             let addr = format!("{}{}", (b'A' + c as u8) as char, r + 1);
             let sheet = app.workbook.active_sheet_mut();
@@ -209,6 +216,7 @@ impl Grid {
             app.edit_buffer = sheet.get(&addr).map(|c| c.raw.clone()).unwrap_or_default();
         }
 
+        // Esc = cancel
         if input.key_pressed(Key::Escape) {
             app.editing_cell = None;
         }
